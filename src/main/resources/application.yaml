@@ -1,7 +1,7 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     generate-ddl: true
   datasource:
     url: jdbc:mysql://${DB}:3306/boot_db?useUnicode=true&charaterEncoding =utf-8&useSSL=false&serverTimezone=UTC&autoReconnection=true
