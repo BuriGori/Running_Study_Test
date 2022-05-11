@@ -1,5 +1,6 @@
 package com.example.running_study_test.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import lombok.*;
 import net.bytebuddy.dynamic.loading.InjectionClassLoader;
 
@@ -28,7 +29,6 @@ public class ChatMessage {
     public Room getRoom() {
         return room;
     }
-
     public void setRoom(Room room) {
         this.room = room;
     }

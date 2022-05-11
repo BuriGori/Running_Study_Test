@@ -12,6 +12,7 @@ import java.util.List;
 @Builder
 @Entity
 public class Room {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -25,7 +26,6 @@ public class Room {
     public void addMessage(ChatMessage chatMessage){
         chatMessageList.add(chatMessage);
     }
-
     public void removeMessage(ChatMessage chatMessage){
         chatMessageList.remove(chatMessage);
     }
