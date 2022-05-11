@@ -20,13 +20,14 @@ public class Room {
     private String name;
 
     @OneToMany(mappedBy = "room")
+    @ToString.Exclude
     private List<ChatMessage> chatMessageList = new java.util.ArrayList<>();
 
-    public void addMessage(ChatMessage chatMessage){
+    public void addMessage(ChatMessage chatMessage) {
         chatMessageList.add(chatMessage);
     }
 
-    public void removeMessage(ChatMessage chatMessage){
+    public void removeMessage(ChatMessage chatMessage) {
         chatMessageList.remove(chatMessage);
     }
 }
