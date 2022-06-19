@@ -12,8 +12,9 @@ public class CreateRoomRequest {
 
   private String name;
 
-  public Room toEntity(){
+  public Room toEntity(Long adminId){
     return Room.builder()
+        .adminId(adminId)
         .name(name)
         .build();
   }

@@ -12,7 +12,13 @@ public class RoomDto {
 
   private String roomName;
 
+  private Long adminId;
+
+  private int memberCount;
+
   public static RoomDto from(Room room) {
-    return new RoomDto(room.getId(), room.getName());
+    return new RoomDto(
+        room.getId(), room.getName(), room.getAdminId(), room.getMemberCount()
+    );
   }
 }

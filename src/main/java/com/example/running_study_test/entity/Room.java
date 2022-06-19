@@ -1,32 +1,48 @@
 package com.example.running_study_test.entity;
 
+import java.util.ArrayList;
 import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Entity
 public class Room {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private Long id;
 
-    @Column
-    private String name;
+  @Column
+  private String name;
 
-    @OneToMany(mappedBy = "room")
-    private List<ChatMessage> chatMessageList = new java.util.ArrayList<>();
+  @Column(name = "member_count")
+  @ColumnDefault("1")
+  private int memberCount;
 
-    public void addMessage(ChatMessage chatMessage){
-        chatMessageList.add(chatMessage);
-    }
-    public void removeMessage(ChatMessage chatMessage){
-        chatMessageList.remove(chatMessage);
-    }
+  @Column(name = "admin_id")
+  private Long adminId;
+
+  @OneToMany(mappedBy = "room")
+  private List<ChatMessage> chatMessageList = new ArrayList<>();
+
+  @OneToMany
+  @JoinColumn(name = "participant_member")
+  private List<Member> memberList = new ArrayList<>();
+
+  @Builder
+  public Room(String name, Long adminId){
+    this.name = name;
+    this.adminId =  adminId;
+  }
+
+  public void addMember(Member member){
+    this.memberCount++;
+    this.memberList.add(member);
+  }
 }
