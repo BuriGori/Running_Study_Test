@@ -3,10 +3,7 @@ package com.example.running_study_test.controller;
 import com.example.running_study_test.common.exception.CustomException;
 import com.example.running_study_test.constant.MessageType;
 import com.example.running_study_test.dto.*;
-import com.example.running_study_test.entity.ChatMessage;
-import com.example.running_study_test.entity.GpsMessage;
-import com.example.running_study_test.entity.Member;
-import com.example.running_study_test.entity.Room;
+import com.example.running_study_test.entity.*;
 import com.example.running_study_test.repo.ChatMessageRepository;
 import com.example.running_study_test.repo.GpsMessageRepository;
 import com.example.running_study_test.repo.MemberRepository;
@@ -14,6 +11,8 @@ import com.example.running_study_test.repo.RoomRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -24,9 +23,12 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
+
+import javax.validation.constraints.Null;
 
 @RequiredArgsConstructor
 @Controller
@@ -51,64 +53,45 @@ public class ChatController {
   }
 
   @Transactional
-  @MessageMapping("/join/{id}")
-  public void join(@DestinationVariable Long id, JoinMessageDto dto) {
-
-    //TODO Ready
-    //TODO 멤버 방 참여 검사 검사
-    System.out.println("----");
-    Room findRoom = roomRepository.findById(id)
-        .orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "방이 없음"));
-
-    List<Member> memberList = findRoom.getMemberList();
-    memberList.stream().filter(
-        (member) -> member.getId().equals(dto.getSenderId())
-    ).findFirst().orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "방에 참여하고 있지 않음"));
-
-    //TODO 원래는 Redis에 저장하고 리턴.
-    if (!readyUser.containsKey(id)) {
-      readyUser.put(id, new ArrayList<Long>(List.of(dto.getSenderId())));
-    } else {
-      readyUser.get(id).add(dto.getSenderId());
-    }
-
-    messagingTemplate.convertAndSend("/sub/chat/" + id, ChatResponseDto.builder()
-        .message("가입성공")
-        .senderId(dto.getSenderId())
-        .type(MessageType.JOIN)
-        .build()
-    );
-  }
-
-  @Transactional
   @MessageMapping("/ready/{id}")
   public void readyToRoom(@DestinationVariable Long id, ReadyMessageDto dto){
     System.out.println("--레디 메세지 전송 시작--");
 
     if(dto.getType() != MessageType.READY){
-      new CustomException(HttpStatus.BAD_REQUEST, " Ready 메세지가 아님 ");
+      messagingTemplate.convertAndSend("/sub/member/"+dto.getSenderId()
+              , ErrorMessageDto.createError("메세지 타입이 READY가 아닌 "+ dto.getType()+" 입니다."));
+      return;
+    }
+    Optional<Room> findRoom = roomRepository.findById(id);
+    if(!findRoom.isPresent()){
+      messagingTemplate.convertAndSend("/sub/member/"+dto.getSenderId()
+              , ErrorMessageDto.createError(id+"번 방이 없습니다."));
+      return;
     }
 
-    Room findRoom = roomRepository.findById(id)
-            .orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, " 방이 없음 "));
+    List<Member> memberList = findRoom.get().getMemberList();
 
-    List<Member> memberList = findRoom.getMemberList();
-    Member findMember = memberList.stream().filter(
-                    (member) -> member.getId().equals(dto.getSenderId())).findFirst()
-            .orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "방에 참여하고 있지 않음"));
-
-    if(!findMember.getIsReady()) {
-      System.out.println(findMember.getId()+ "가 준비 되었습니다. ");
-      findMember.changeReadyStatus();
-      findRoom.setReadyCount(findRoom.getReadyCount() + 1);
+    Optional<Member> findMember = memberList.stream().filter(
+                    (member) -> member.getId().equals(dto.getSenderId())).findFirst();
+    if(!findMember.isPresent()){
+      messagingTemplate.convertAndSend("/sub/member/"+dto.getSenderId()
+              , ErrorMessageDto.createError(id + "번 방에 참여하지 않았습니다."));
+      return;
     }
 
-    if(findRoom.getReadyCount() == findRoom.getMemberCount()){
+
+    if(!findMember.get().getIsReady()) {
+      System.out.println(findMember.get().getId()+ "가 준비 되었습니다. ");
+      findMember.get().changeReadyStatus();
+      findRoom.get().setReadyCount(findRoom.get().getReadyCount() + 1);
+    }
+
+    if(findRoom.get().getReadyCount() == findRoom.get().getMemberCount()){
       messagingTemplate.convertAndSend("/sub/chat/" + id, StartResponseDto.builder()
               .type(MessageType.START)
               .build()
       );
-      findRoom.setReadyMembers();
+      findRoom.get().setReadyMembers();
     }
   }
 
@@ -117,7 +100,9 @@ public class ChatController {
   public void messageToRoom(@DestinationVariable Long roomId, GpsMessageDto dto){
 
     if(dto.getType() != MessageType.GPS){
-      new CustomException(HttpStatus.BAD_REQUEST, " GPS 메세지가 아님 ");
+      messagingTemplate.convertAndSend("/sub/member/"+dto.getSenderId()
+              , ErrorMessageDto.createError("메세지 타입이 GPS 가 아닌 "+ dto.getType()+" 입니다."));
+      return;
     }
 
     System.out.println("--GPS Message 확인--");
