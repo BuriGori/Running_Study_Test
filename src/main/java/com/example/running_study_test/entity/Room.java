@@ -8,7 +8,6 @@ import java.util.List;
 import org.hibernate.annotations.ColumnDefault;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -52,5 +51,9 @@ public class Room {
 
   public void setReadyMembers(){
     readyCount = 0;
+  }
+
+  public void addReadyMembers(){
+    readyCount++;
   }
 }

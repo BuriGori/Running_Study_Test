@@ -1,34 +1,23 @@
 package com.example.running_study_test.controller;
 
-import com.example.running_study_test.common.exception.CustomException;
 import com.example.running_study_test.constant.MessageType;
 import com.example.running_study_test.dto.*;
-import com.example.running_study_test.entity.*;
+import com.example.running_study_test.entity.ChatMessage;
+import com.example.running_study_test.entity.GpsMessage;
+import com.example.running_study_test.entity.Member;
+import com.example.running_study_test.entity.Room;
 import com.example.running_study_test.repo.ChatMessageRepository;
 import com.example.running_study_test.repo.GpsMessageRepository;
-import com.example.running_study_test.repo.MemberRepository;
 import com.example.running_study_test.repo.RoomRepository;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
-import javax.validation.constraints.Null;
+import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Controller
@@ -36,9 +25,7 @@ public class ChatController {
 
   private final SimpMessageSendingOperations messagingTemplate;
   private final ChatMessageRepository chatMessageRepository;
-  private final MemberRepository memberRepository;
   private final RoomRepository roomRepository;
-  private final HashMap<Long, ArrayList<Long>> readyUser = new HashMap<>();
   private final GpsMessageRepository gpsMessageRepository;
 
   @MessageMapping("/chat/message")
@@ -83,7 +70,7 @@ public class ChatController {
     if(!findMember.get().getIsReady()) {
       System.out.println(findMember.get().getId()+ "가 준비 되었습니다. ");
       findMember.get().changeReadyStatus();
-      findRoom.get().setReadyCount(findRoom.get().getReadyCount() + 1);
+      findRoom.get().addReadyMembers();
     }
 
     if(findRoom.get().getReadyCount() == findRoom.get().getMemberCount()){
@@ -92,6 +79,10 @@ public class ChatController {
               .build()
       );
       findRoom.get().setReadyMembers();
+    }
+    else {
+      messagingTemplate.convertAndSend("/sub/chat/"+ id
+              , new ReadyResponseDto(findRoom.get().getReadyCount(), findRoom.get().getMemberCount()));
     }
   }
 
