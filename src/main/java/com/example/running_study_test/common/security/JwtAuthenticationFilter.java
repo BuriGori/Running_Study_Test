@@ -52,6 +52,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     skipPath.add("/api/member");
     skipPath.add("/api/member/login");
     skipPath.add("/ws/**");
+    skipPath.add("/pub/**");
+    skipPath.add("/sub/**");
     log.info("patn --- " + request.getRequestURI());
     return skipPath.stream()
         .anyMatch(p -> pathMatcher.match(p, request.getRequestURI()));

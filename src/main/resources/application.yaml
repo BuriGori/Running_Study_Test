@@ -4,9 +4,9 @@ spring:
       ddl-auto: update
     generate-ddl: true
   datasource:
-    url: jdbc:mysql://${DB}:3306/boot_db?useUnicode=true&charaterEncoding =utf-8&useSSL=false&serverTimezone=UTC&autoReconnection=true
+    url: jdbc:mysql://${DB}:3306/boot_db?useUnicode=true&charaterEncoding=utf-8&useSSL=false&serverTimezone=UTC&autoReconnection=true
     username: root
-    password: root
+    password: zz126578
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 
