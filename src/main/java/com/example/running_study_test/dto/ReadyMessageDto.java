@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class JoinMessageDto {
+public class ReadyMessageDto {
 
-  private MessageType type;
+    private MessageType type;
 
-  private Long senderId;
+    private Long senderId;
 }

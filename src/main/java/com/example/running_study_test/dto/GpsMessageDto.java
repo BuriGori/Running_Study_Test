@@ -8,9 +8,15 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class JoinMessageDto {
+public class GpsMessageDto {
 
-  private MessageType type;
+    private MessageType type;
 
-  private Long senderId;
+    private Long senderId;
+
+    private String name;
+
+    private Double latitude;
+
+    private Double longitude;
 }

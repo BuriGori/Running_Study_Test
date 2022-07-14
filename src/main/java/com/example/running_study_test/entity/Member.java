@@ -9,6 +9,7 @@ import javax.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Entity
@@ -29,6 +30,8 @@ public class Member {
   @Column(nullable = false)
   private String password;
 
+  private Boolean isReady=false;
+
   @Builder
   public Member(String email,String name, String password) {
     this.email = email;
@@ -36,4 +39,7 @@ public class Member {
     this.password = password;
   }
 
+  public void changeReadyStatus(){
+    isReady = !isReady;
+  }
 }
